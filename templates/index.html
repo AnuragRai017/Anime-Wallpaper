@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Free 4K Wallpaper Photos</h1>
+    <form class="d-flex mb-4" action="{{ url_for('index') }}" method="get">
+        <input type="text" class="form-control mr-2" placeholder="Search for wallpapers..." aria-label="Search for wallpapers" aria-describedby="button-addon2" name="search">
+        <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Search</button>
+    </form>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for image in images %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="image-container">
+                    <img src="{{ url_for('static', filename='images/' + image.filename) }}" class="card-img-top" alt="{{ image.title }}" onclick="openModal('{{ image.filename | urlencode }}', '{{ image.title }}', '{{ image.description }}', '{{ image.likes }}')">
+                    <div class="overlay">
+                        <div class="text">
+                            <button class="btn btn-primary" onclick="downloadImage('{{ image.filename | urlencode }}')">Download</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ image.title }}</h5>
+                    <p class="card-text">{{ image.description }}</p>
+                    <p class="card-text">Likes: <span id="likes-{{ image.filename }}">{{ image.likes }}</span></p>
+                    <button class="btn btn-outline-primary" onclick="likeImage('{{ image.filename | urlencode }}')">Like</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="imageModalLabel">Image Title</h5>
+      </div>
+      <div class="modal-body">
+        <img id="modalImage" src="" class="img-fluid" alt="">
+        <p id="modalDescription">Image Description</p>
+        <p>Likes: <span id="modalLikes"></span></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="likeImage(currentImage)">Like</button>
+        <button type="button" class="btn btn-success" onclick="downloadImage(currentImage)">Download</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentImage = '';
+
+function openModal(filename, title, description, likes) {
+  currentImage = filename;
+  document.getElementById('imageModalLabel').innerText = title;
+  document.getElementById('modalImage').src = `{{ url_for('static', filename='images') }}/${filename}`;
+  document.getElementById('modalDescription').innerText = description;
+  document.getElementById('modalLikes').innerText = likes;
+  const myModal = new bootstrap.Modal(document.getElementById('imageModal'), {
+    keyboard: false
+  });
+  myModal.show();
+}
+
+function likeImage(filename) {
+  fetch(`/like/${filename}`, {
+    method: 'POST'
+  }).then(response => response.json())
+    .then(data => {
+      document.getElementById(`likes-${filename}`).innerText = data.likes;
+      document.getElementById('modalLikes').innerText = data.likes;
+    });
+}
+
+function downloadImage(filename) {
+  window.location.href = `/download/${filename}/original`;
+}
+</script>
+{% endblock %}

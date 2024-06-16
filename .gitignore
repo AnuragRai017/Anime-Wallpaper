@@ -1,0 +1,7 @@
+package-lock.json,
+package.json,
+node_modules,
+functions,
+firestore.indexes.json,
+firestore.rules,
+__pycache__
